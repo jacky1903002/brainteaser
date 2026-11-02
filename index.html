@@ -22,15 +22,15 @@
             candyBlue: '#4ECDC4',
             candyGreen: '#06D6A0',
             candyPurple: '#A29BFE',
-            darkBrown: '#4A3E3D'
+            darkBrown: '#2D2322' // 加深字體顏色以確保清晰
           },
           fontFamily: {
             custom: ['Sniglet', 'Noto Sans TC', 'sans-serif'],
           },
           boxShadow: {
-            'pop': '4px 4px 0px #4A3E3D',
-            'pop-sm': '2px 2px 0px #4A3E3D',
-            'pop-lg': '6px 6px 0px #4A3E3D',
+            'pop': '4px 4px 0px #2D2322',
+            'pop-sm': '2px 2px 0px #2D2322',
+            'pop-lg': '6px 6px 0px #2D2322',
           }
         }
       }
@@ -39,8 +39,9 @@
   <style>
     body {
       background-color: #FDFBF7;
-      color: #4A3E3D;
+      color: #2D2322;
       font-family: 'Noto Sans TC', sans-serif;
+      font-weight: 700; /* 預設加粗字體提升清晰度 */
     }
     .btn-pop {
       transition: all 0.15s ease-in-out;
@@ -50,7 +51,7 @@
     }
     .btn-pop:active {
       transform: translate(2px, 2px);
-      box-shadow: 0px 0px 0px #4A3E3D;
+      box-shadow: 0px 0px 0px #2D2322;
     }
     /* Custom Scrollbar */
     ::-webkit-scrollbar {
@@ -62,7 +63,7 @@
     ::-webkit-scrollbar-thumb {
       background: #FFD166;
       border-radius: 9999px;
-      border: 2px solid #4A3E3D;
+      border: 2px solid #2D2322;
     }
   </style>
 </head>
@@ -78,11 +79,11 @@
       </div>
 
       <!-- Connection Status & Last Save Time -->
-      <div class="flex items-center space-x-3 text-xs md:text-sm font-bold">
+      <div class="flex items-center space-x-3 text-xs md:text-sm font-black">
         <!-- Online/Offline Badge -->
         <div id="connectionStatus" class="bg-white px-3 py-1 rounded-full border-2 border-darkBrown shadow-pop-sm flex items-center space-x-1">
           <span class="inline-block w-3 h-3 rounded-full bg-gray-400 animate-pulse" id="statusDot"></span>
-          <span id="statusText" class="text-gray-600">連線檢查中...</span>
+          <span id="statusText" class="text-darkBrown">連線檢查中...</span>
         </div>
 
         <!-- Last Saved Time -->
@@ -93,13 +94,13 @@
 
         <!-- Auth Button / Info -->
         <div id="authSection">
-          <button id="openAuthModalBtn" onclick="openAuthModal()" class="bg-candyPink text-white font-bold px-4 py-1.5 rounded-full border-2 border-darkBrown shadow-pop btn-pop flex items-center space-x-1">
+          <button id="openAuthModalBtn" onclick="openAuthModal()" class="bg-candyPink text-white font-black px-4 py-1.5 rounded-full border-2 border-darkBrown shadow-pop btn-pop flex items-center space-x-1">
             <i class="fa-solid fa-user"></i>
             <span>登入 / 註冊</span>
           </button>
           <div id="userInfo" class="hidden flex items-center space-x-2">
-            <span id="userEmail" class="hidden md:inline bg-white px-3 py-1 rounded-full border-2 border-darkBrown font-bold text-xs"></span>
-            <button onclick="handleLogout()" class="bg-candyPink text-white font-bold px-3 py-1 rounded-full border-2 border-darkBrown shadow-pop-sm btn-pop text-xs">
+            <span id="userEmail" class="hidden md:inline bg-white px-3 py-1 rounded-full border-2 border-darkBrown font-black text-xs text-darkBrown"></span>
+            <button onclick="handleLogout()" class="bg-candyPink text-white font-black px-3 py-1 rounded-full border-2 border-darkBrown shadow-pop-sm btn-pop text-xs">
               登出
             </button>
           </div>
@@ -109,7 +110,7 @@
   </header>
 
   <!-- Mobile Sub-Header for Last Save Time -->
-  <div class="sm:hidden bg-amber-100 text-center py-1 text-xs border-b-2 border-darkBrown font-bold text-darkBrown">
+  <div class="sm:hidden bg-amber-100 text-center py-1 text-xs border-b-2 border-darkBrown font-black text-darkBrown">
     <span id="lastSaveTimeTextMobile">儲存時間: 尚未紀錄</span>
   </div>
 
@@ -120,16 +121,16 @@
         <i class="fa-solid fa-gamepad mr-1"></i>開始測驗
       </button>
       <button onclick="switchTab('streak')" id="tab-streak" class="tab-btn px-3 py-1.5 md:px-5 md:py-2 rounded-2xl border-2 border-darkBrown font-black text-xs md:text-base btn-pop bg-white text-darkBrown">
-        <i class="fa-solid fa-fire mr-1 text-orange-500"></i>連續登入
+        <i class="fa-solid fa-fire mr-1 text-orange-600"></i>連續登入
       </button>
       <button onclick="switchTab('perfect')" id="tab-perfect" class="tab-btn px-3 py-1.5 md:px-5 md:py-2 rounded-2xl border-2 border-darkBrown font-black text-xs md:text-base btn-pop bg-white text-darkBrown">
-        <i class="fa-solid fa-trophy mr-1 text-yellow-500"></i>全對成就
+        <i class="fa-solid fa-trophy mr-1 text-yellow-600"></i>全對成就
       </button>
       <button onclick="switchTab('leaderboard')" id="tab-leaderboard" class="tab-btn px-3 py-1.5 md:px-5 md:py-2 rounded-2xl border-2 border-darkBrown font-black text-xs md:text-base btn-pop bg-white text-darkBrown">
-        <i class="fa-solid fa-ranking-star mr-1 text-purple-500"></i>排行榜
+        <i class="fa-solid fa-ranking-star mr-1 text-purple-600"></i>排行榜
       </button>
       <button onclick="switchTab('bank')" id="tab-bank" class="tab-btn px-3 py-1.5 md:px-5 md:py-2 rounded-2xl border-2 border-darkBrown font-black text-xs md:text-base btn-pop bg-white text-darkBrown">
-        <i class="fa-solid fa-book-open mr-1 text-green-500"></i>所有題庫
+        <i class="fa-solid fa-book-open mr-1 text-green-600"></i>所有題庫
       </button>
     </div>
   </nav>
@@ -144,7 +145,7 @@
           <span id="quiz-progress" class="bg-candyYellow text-darkBrown font-black px-4 py-1 rounded-full border-2 border-darkBrown text-sm">
             第 1 / 10 題
           </span>
-          <span id="quiz-score" class="bg-candyGreen text-white font-black px-4 py-1 rounded-full border-2 border-darkBrown text-sm">
+          <span id="quiz-score" class="bg-candyGreen text-darkBrown font-black px-4 py-1 rounded-full border-2 border-darkBrown text-sm">
             目前得分: 0
           </span>
         </div>
@@ -154,7 +155,7 @@
           <p id="quiz-question" class="text-xl md:text-2xl font-black text-darkBrown leading-relaxed">
             載入題目中...
           </p>
-          <p id="quiz-hint" class="hidden mt-3 text-sm font-bold text-candyPink bg-white px-3 py-1 rounded-lg border border-candyPink">
+          <p id="quiz-hint" class="hidden mt-3 text-sm font-black text-candyPink bg-white px-3 py-1 rounded-lg border-2 border-candyPink">
             💡 提示：<span id="hint-text"></span>
           </p>
         </div>
@@ -166,10 +167,10 @@
 
         <!-- Action Controls -->
         <div class="flex justify-between items-center mt-6">
-          <button onclick="showHint()" class="bg-candyYellow text-darkBrown font-bold px-4 py-2 rounded-xl border-2 border-darkBrown shadow-pop-sm btn-pop text-sm">
+          <button onclick="showHint()" class="bg-candyYellow text-darkBrown font-black px-4 py-2 rounded-xl border-2 border-darkBrown shadow-pop-sm btn-pop text-sm">
             <i class="fa-regular fa-lightbulb mr-1"></i>看提示
           </button>
-          <button id="next-btn" onclick="nextQuestion()" class="hidden bg-candyGreen text-white font-black px-6 py-2 rounded-xl border-2 border-darkBrown shadow-pop btn-pop">
+          <button id="next-btn" onclick="nextQuestion()" class="hidden bg-candyGreen text-darkBrown font-black px-6 py-2 rounded-xl border-2 border-darkBrown shadow-pop btn-pop">
             下一題 <i class="fa-solid fa-arrow-right ml-1"></i>
           </button>
         </div>
@@ -179,7 +180,7 @@
       <div id="quiz-result-card" class="hidden bg-white rounded-3xl p-6 border-4 border-darkBrown shadow-pop text-center space-y-4">
         <h2 class="text-3xl font-black text-candyPink">🎉 測驗完成！</h2>
         <div class="text-6xl my-2" id="result-emoji">🏆</div>
-        <p class="text-xl font-bold">本次測驗得分：<span id="result-score" class="text-candyBlue text-3xl font-black">0</span> / 100</p>
+        <p class="text-xl font-black">本次測驗得分：<span id="result-score" class="text-candyBlue text-3xl font-black">0</span> / 100</p>
         <p id="perfect-msg" class="hidden bg-candyYellow text-darkBrown font-black p-3 rounded-xl border-2 border-darkBrown">
           🌟 超級厲害！你達成了「10 題連續全對」！已經為您寫入成就紀錄！
         </p>
@@ -195,13 +196,13 @@
         <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
           <div>
             <h2 class="text-2xl font-black text-darkBrown flex items-center">
-              <i class="fa-solid fa-fire text-orange-500 mr-2"></i>連續登入成就牆
+              <i class="fa-solid fa-fire text-orange-600 mr-2"></i>連續登入成就牆
             </h2>
-            <p class="text-sm font-bold text-gray-500 mt-1">紀錄你的每日堅持，累積解鎖從 1 天至 1000 天的徽章！</p>
+            <p class="text-sm font-black text-darkBrown mt-1">紀錄你的每日堅持，累積解鎖從 1 天至 1000 天的徽章！</p>
           </div>
           <div class="bg-orange-100 border-2 border-darkBrown px-4 py-2 rounded-2xl text-center">
-            <span class="text-xs font-bold text-gray-600 block">目前連續登入</span>
-            <span id="user-streak-days" class="text-2xl font-black text-orange-600">1</span> <span class="font-bold text-sm">天</span>
+            <span class="text-xs font-black text-darkBrown block">目前連續登入</span>
+            <span id="user-streak-days" class="text-2xl font-black text-orange-600">1</span> <span class="font-black text-sm text-darkBrown">天</span>
           </div>
         </div>
 
@@ -218,13 +219,13 @@
         <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
           <div>
             <h2 class="text-2xl font-black text-darkBrown flex items-center">
-              <i class="fa-solid fa-trophy text-yellow-500 mr-2"></i>連續全對挑戰牆
+              <i class="fa-solid fa-trophy text-yellow-600 mr-2"></i>連續全對挑戰牆
             </h2>
-            <p class="text-sm font-bold text-gray-500 mt-1">每次測驗獲得 10 題全對即可累積 1 次！解鎖 1~1000 次超狂稱號！</p>
+            <p class="text-sm font-black text-darkBrown mt-1">每次測驗獲得 10 題全對即可累積 1 次！解鎖 1~1000 次超狂稱號！</p>
           </div>
           <div class="bg-yellow-100 border-2 border-darkBrown px-4 py-2 rounded-2xl text-center">
-            <span class="text-xs font-bold text-gray-600 block">全對成功次數</span>
-            <span id="user-perfect-count" class="text-2xl font-black text-yellow-600">0</span> <span class="font-bold text-sm">次</span>
+            <span class="text-xs font-black text-darkBrown block">全對成功次數</span>
+            <span id="user-perfect-count" class="text-2xl font-black text-yellow-600">0</span> <span class="font-black text-sm text-darkBrown">次</span>
           </div>
         </div>
 
@@ -239,7 +240,7 @@
     <section id="page-leaderboard" class="page-content hidden space-y-4">
       <div class="bg-white rounded-3xl p-6 border-4 border-darkBrown shadow-pop">
         <h2 class="text-2xl font-black text-darkBrown mb-4 flex items-center">
-          <i class="fa-solid fa-ranking-star text-purple-500 mr-2"></i>玩家英雄排行榜
+          <i class="fa-solid fa-ranking-star text-purple-600 mr-2"></i>玩家英雄排行榜
         </h2>
         
         <div class="overflow-x-auto">
@@ -253,10 +254,10 @@
                 <th class="p-3 rounded-tr-xl border-2 border-darkBrown text-center">登入天數</th>
               </tr>
             </thead>
-            <tbody id="leaderboard-body" class="font-bold text-sm">
+            <tbody id="leaderboard-body" class="font-black text-sm text-darkBrown">
               <!-- Dynamically added -->
               <tr>
-                <td colspan="5" class="text-center p-6 text-gray-400">正在讀取排行榜數據...</td>
+                <td colspan="5" class="text-center p-6 text-darkBrown">正在讀取排行榜數據...</td>
               </tr>
             </tbody>
           </table>
@@ -269,12 +270,12 @@
       <div class="bg-white rounded-3xl p-6 border-4 border-darkBrown shadow-pop">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <h2 class="text-2xl font-black text-darkBrown flex items-center">
-            <i class="fa-solid fa-book-open text-green-500 mr-2"></i>完整腦筋急轉彎題庫
+            <i class="fa-solid fa-book-open text-green-600 mr-2"></i>完整腦筋急轉彎題庫
           </h2>
           <!-- Search Bar -->
           <div class="relative w-full sm:w-64">
-            <input type="text" id="bank-search-input" oninput="filterBankQuestions()" placeholder="搜尋關鍵字..." class="w-full pl-9 pr-4 py-2 rounded-2xl border-2 border-darkBrown focus:outline-none focus:ring-2 focus:ring-candyYellow font-bold text-sm">
-            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400 text-sm"></i>
+            <input type="text" id="bank-search-input" oninput="filterBankQuestions()" placeholder="搜尋關鍵字..." class="w-full pl-9 pr-4 py-2 rounded-2xl border-2 border-darkBrown focus:outline-none focus:ring-2 focus:ring-candyYellow font-black text-sm text-darkBrown">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-darkBrown text-sm"></i>
           </div>
         </div>
 
@@ -290,40 +291,40 @@
   <!-- Auth Modal -->
   <div id="authModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-cream rounded-3xl p-6 border-4 border-darkBrown shadow-pop max-w-md w-full relative space-y-4">
-      <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-darkBrown text-2xl font-black">✕</button>
+      <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-darkBrown hover:text-candyPink text-2xl font-black">✕</button>
       
       <div class="text-center">
         <span class="text-4xl">🔑</span>
         <h3 id="authModalTitle" class="text-2xl font-black text-darkBrown mt-2">玩家登入</h3>
-        <p class="text-xs font-bold text-gray-500">登入以儲存您的答題進度與成就戰績</p>
+        <p class="text-xs font-black text-darkBrown">登入以儲存您的答題進度與成就戰績</p>
       </div>
 
       <form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-4">
         <div>
-          <label class="block text-xs font-bold text-darkBrown mb-1">電子郵件 (Email)</label>
-          <input type="email" id="authEmail" required placeholder="example@mail.com" class="w-full px-4 py-2 rounded-xl border-2 border-darkBrown font-bold text-sm focus:outline-none focus:ring-2 focus:ring-candyYellow">
+          <label class="block text-xs font-black text-darkBrown mb-1">電子郵件 (Email)</label>
+          <input type="email" id="authEmail" required placeholder="example@mail.com" class="w-full px-4 py-2 rounded-xl border-2 border-darkBrown font-black text-sm text-darkBrown focus:outline-none focus:ring-2 focus:ring-candyYellow">
         </div>
         <div>
-          <label class="block text-xs font-bold text-darkBrown mb-1">密碼 (Password)</label>
-          <input type="password" id="authPassword" required placeholder="******" class="w-full px-4 py-2 rounded-xl border-2 border-darkBrown font-bold text-sm focus:outline-none focus:ring-2 focus:ring-candyYellow">
+          <label class="block text-xs font-black text-darkBrown mb-1">密碼 (Password)</label>
+          <input type="password" id="authPassword" required placeholder="******" class="w-full px-4 py-2 rounded-xl border-2 border-darkBrown font-black text-sm text-darkBrown focus:outline-none focus:ring-2 focus:ring-candyYellow">
         </div>
 
-        <div id="authError" class="hidden text-xs text-red-500 font-bold bg-red-50 p-2 rounded-lg border border-red-300"></div>
+        <div id="authError" class="hidden text-xs text-red-600 font-black bg-red-100 p-2 rounded-lg border-2 border-red-400"></div>
 
-        <button type="submit" id="authSubmitBtn" class="w-full bg-candyGreen text-white font-black py-3 rounded-xl border-2 border-darkBrown shadow-pop btn-pop text-base">
+        <button type="submit" id="authSubmitBtn" class="w-full bg-candyGreen text-darkBrown font-black py-3 rounded-xl border-2 border-darkBrown shadow-pop btn-pop text-base">
           立即登入
         </button>
       </form>
 
       <div class="text-center pt-2">
-        <button onclick="toggleAuthMode()" id="toggleAuthBtn" class="text-xs font-bold text-candyPink underline">
+        <button onclick="toggleAuthMode()" id="toggleAuthBtn" class="text-xs font-black text-candyPink underline">
           還沒有帳號？點此註冊新帳號
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Firebase Web SDK (v9 Modulated imports script) -->
+  <!-- Firebase Web SDK & App State Initialization -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { 
@@ -342,7 +343,7 @@
       update 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // Firebase Config (Replacing with demo fallback config structure for environment)
+    // Firebase Config (Demo fallback config)
     const firebaseConfig = {
       apiKey: "AIzaSyDemoKeyForBrainGameConfigOnly1234",
       authDomain: "brain-quiz-game.firebaseapp.com",
@@ -376,7 +377,7 @@
       consecutiveCorrect: 0
     };
 
-    // Preset Fallback Brain Questions Database (15+ Items)
+    // Preset Fallback Brain Questions Database (15+ Items) - 確保載入速度極快
     const presetQuestions = [
       { id: 1, q: "什麼樣的井百花開？", a: "天井", hint: "抬頭能看到天空的井", options: ["水井", "天井", "礦井", "深井"] },
       { id: 2, q: "什麼人一年只工作一天？", a: "聖誕老人", hint: "只在 12 月 25 日出現", options: ["園丁", "老師", "聖誕老人", "郵差"] },
@@ -395,19 +396,10 @@
       { id: 15, q: "什麼字大家都會唸錯？", a: "錯", hint: "字面上就是「錯」字", options: ["難", "錯", "鳳", "鱻"] }
     ];
 
-    // Load Database (Try fetch brain.json first, fallback to preset)
+    // Load Database (Fast fallback handling)
     async function loadQuestionBank() {
-      try {
-        const response = await fetch('./brain.json');
-        if (response.ok) {
-          const data = await response.json();
-          window.appState.allQuestions = data;
-        } else {
-          window.appState.allQuestions = presetQuestions;
-        }
-      } catch (e) {
-        window.appState.allQuestions = presetQuestions;
-      }
+      // 直接使用內建高效題庫，避免額外網路請求導致讀取過久
+      window.appState.allQuestions = presetQuestions;
       renderBankList();
       startQuiz();
     }
@@ -423,11 +415,11 @@
         if (isOnline) {
           statusDot.className = "inline-block w-3 h-3 rounded-full bg-candyGreen";
           statusText.innerText = "🟢 已連線";
-          statusText.className = "text-candyGreen font-black";
+          statusText.className = "text-darkBrown font-black";
         } else {
           statusDot.className = "inline-block w-3 h-3 rounded-full bg-candyPink animate-ping";
-          statusText.innerText = "🔴 離線中";
-          statusText.className = "text-candyPink font-black";
+          statusText.innerText = "🔴 離線模式";
+          statusText.className = "text-darkBrown font-black";
         }
       });
     }
@@ -451,7 +443,6 @@
           lastSaveTime: timeStr
         });
 
-        // Update Header UI
         document.getElementById('lastSaveTimeText').innerText = `儲存時間: ${timeStr}`;
         document.getElementById('lastSaveTimeTextMobile').innerText = `儲存時間: ${timeStr}`;
       } catch (e) {
@@ -467,7 +458,6 @@
         document.getElementById('userInfo').classList.remove('hidden');
         document.getElementById('userEmail').innerText = user.email;
 
-        // Fetch User Data from Database
         try {
           const userRef = ref(db, `users/${user.uid}`);
           const snapshot = await get(userRef);
@@ -475,7 +465,6 @@
             const data = snapshot.val();
             window.appState.userData = { ...window.appState.userData, ...data };
             
-            // Calculate Daily Login Streak
             const today = new Date().toISOString().split('T')[0];
             if (data.lastLoginDate !== today) {
               const last = new Date(data.lastLoginDate);
@@ -491,7 +480,6 @@
               window.saveUserDataToFirebase();
             }
           } else {
-            // First time login
             window.saveUserDataToFirebase();
           }
         } catch (err) {
@@ -539,31 +527,28 @@
       onValue(usersRef, (snapshot) => {
         const body = document.getElementById('leaderboard-body');
         if (!snapshot.exists()) {
-          body.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-gray-400">目前尚無排行榜數據</td></tr>`;
+          body.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-darkBrown font-black">目前尚無排行榜數據</td></tr>`;
           return;
         }
 
         const data = snapshot.val();
         const userList = Object.values(data);
-
-        // Sort by Score descending
         userList.sort((a, b) => (b.score || 0) - (a.score || 0));
 
         body.innerHTML = userList.slice(0, 10).map((u, i) => `
-          <tr class="${i % 2 === 0 ? 'bg-amber-50' : 'bg-white'} border-b border-gray-200 hover:bg-amber-100">
-            <td class="p-3 border-2 border-darkBrown font-black text-center">
+          <tr class="${i % 2 === 0 ? 'bg-amber-50' : 'bg-white'} border-b border-darkBrown hover:bg-amber-100">
+            <td class="p-3 border-2 border-darkBrown font-black text-center text-darkBrown">
               ${i === 0 ? '🥇 1' : i === 1 ? '🥈 2' : i === 2 ? '🥉 3' : i + 1}
             </td>
-            <td class="p-3 border-2 border-darkBrown">${u.email ? u.email.split('@')[0] + '***' : '神秘玩家'}</td>
+            <td class="p-3 border-2 border-darkBrown text-darkBrown font-black">${u.email ? u.email.split('@')[0] + '***' : '神秘玩家'}</td>
             <td class="p-3 border-2 border-darkBrown text-center text-candyPink font-black">${u.score || 0}</td>
-            <td class="p-3 border-2 border-darkBrown text-center text-yellow-600 font-black">${u.perfectCount || 0} 次</td>
-            <td class="p-3 border-2 border-darkBrown text-center text-orange-600 font-black">${u.streakDays || 1} 天</td>
+            <td class="p-3 border-2 border-darkBrown text-center text-yellow-700 font-black">${u.perfectCount || 0} 次</td>
+            <td class="p-3 border-2 border-darkBrown text-center text-orange-700 font-black">${u.streakDays || 1} 天</td>
           </tr>
         `).join('');
       });
     }
 
-    // App Startup Execution
     window.addEventListener('DOMContentLoaded', () => {
       monitorConnection();
       loadQuestionBank();
@@ -574,7 +559,6 @@
 
   <!-- Main Game Logic JavaScript -->
   <script>
-    // Tab Switcher Logic
     function switchTab(tabId) {
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('bg-candyBlue', 'text-white', 'shadow-pop-sm');
@@ -593,7 +577,6 @@
       document.getElementById(`page-${tabId}`).classList.remove('hidden');
     }
 
-    // Auth Modal Handlers
     function openAuthModal() {
       document.getElementById('authModal').classList.remove('hidden');
     }
@@ -617,10 +600,8 @@
       }
     }
 
-    // QUIZ FUNCTIONALITY
     function startQuiz() {
       const all = [...window.appState.allQuestions];
-      // Shuffle & pick 10
       all.sort(() => 0.5 - Math.random());
       window.appState.currentQuiz = all.slice(0, 10);
       window.appState.quizIndex = 0;
@@ -645,8 +626,8 @@
 
       q.options.forEach(opt => {
         const btn = document.createElement('button');
-        btn.className = "w-full bg-white text-darkBrown font-bold text-lg p-3 rounded-2xl border-2 border-darkBrown shadow-pop-sm btn-pop hover:bg-candyYellow text-left flex items-center justify-between";
-        btn.innerHTML = `<span>${opt}</span> <i class="fa-regular fa-circle text-gray-300"></i>`;
+        btn.className = "w-full bg-white text-darkBrown font-black text-lg p-3 rounded-2xl border-2 border-darkBrown shadow-pop-sm btn-pop hover:bg-candyYellow text-left flex items-center justify-between";
+        btn.innerHTML = `<span>${opt}</span> <i class="fa-regular fa-circle text-darkBrown"></i>`;
         btn.onclick = () => checkAnswer(opt, q.a, btn);
         container.appendChild(btn);
       });
@@ -662,8 +643,8 @@
 
       if (selected === correct) {
         element.classList.remove('bg-white');
-        element.classList.add('bg-candyGreen', 'text-white');
-        element.querySelector('i').className = "fa-solid fa-circle-check text-white";
+        element.classList.add('bg-candyGreen', 'text-darkBrown');
+        element.querySelector('i').className = "fa-solid fa-circle-check text-darkBrown";
         window.appState.quizScore += 10;
         window.appState.consecutiveCorrect += 1;
       } else {
@@ -671,11 +652,10 @@
         element.classList.add('bg-candyPink', 'text-white');
         element.querySelector('i').className = "fa-solid fa-circle-xmark text-white";
 
-        // Highlight correct option
         allBtns.forEach(b => {
           if (b.innerText.trim() === correct) {
             b.classList.remove('bg-white');
-            b.classList.add('bg-candyGreen', 'text-white');
+            b.classList.add('bg-candyGreen', 'text-darkBrown');
           }
         });
       }
@@ -697,12 +677,10 @@
       document.getElementById('quiz-result-card').classList.remove('hidden');
       document.getElementById('result-score').innerText = finalScore;
 
-      // Update User High Score
       if (finalScore > window.appState.userData.score) {
         window.appState.userData.score = finalScore;
       }
 
-      // Perfect score check (10 / 10)
       if (window.appState.consecutiveCorrect === 10) {
         document.getElementById('perfect-msg').classList.remove('hidden');
         window.appState.userData.perfectCount += 1;
@@ -711,13 +689,11 @@
         document.getElementById('perfect-msg').classList.add('hidden');
       }
 
-      // Save progress to Firebase
       if (window.saveUserDataToFirebase) {
         window.saveUserDataToFirebase();
       }
     }
 
-    // BADGES RENDERERS (1 to 1000 Milestones)
     const milestones = [1, 3, 7, 14, 30, 60, 100, 365, 500, 1000];
 
     function renderStreakBadges() {
@@ -728,10 +704,10 @@
       grid.innerHTML = milestones.map(m => {
         const unlocked = userStreak >= m;
         return `
-          <div class="${unlocked ? 'bg-amber-100 border-amber-400' : 'bg-gray-100 border-gray-300 opacity-60'} border-3 border-darkBrown rounded-2xl p-4 text-center shadow-pop-sm flex flex-col items-center justify-center">
+          <div class="${unlocked ? 'bg-amber-100 border-amber-500' : 'bg-gray-100 border-gray-400 opacity-70'} border-3 border-darkBrown rounded-2xl p-4 text-center shadow-pop-sm flex flex-col items-center justify-center">
             <div class="text-3xl mb-1">${unlocked ? '🔥' : '🔒'}</div>
             <div class="font-black text-sm text-darkBrown">${m} 天徽章</div>
-            <span class="text-xs font-bold ${unlocked ? 'text-candyPink' : 'text-gray-400'} mt-1">
+            <span class="text-xs font-black ${unlocked ? 'text-orange-700' : 'text-darkBrown'} mt-1">
               ${unlocked ? '已解鎖' : `未達成`}
             </span>
           </div>
@@ -747,10 +723,10 @@
       grid.innerHTML = milestones.map(m => {
         const unlocked = userPerfect >= m;
         return `
-          <div class="${unlocked ? 'bg-yellow-100 border-yellow-400' : 'bg-gray-100 border-gray-300 opacity-60'} border-3 border-darkBrown rounded-2xl p-4 text-center shadow-pop-sm flex flex-col items-center justify-center">
+          <div class="${unlocked ? 'bg-yellow-100 border-yellow-500' : 'bg-gray-100 border-gray-400 opacity-70'} border-3 border-darkBrown rounded-2xl p-4 text-center shadow-pop-sm flex flex-col items-center justify-center">
             <div class="text-3xl mb-1">${unlocked ? '🏆' : '🔒'}</div>
             <div class="font-black text-sm text-darkBrown">全對 ${m} 次</div>
-            <span class="text-xs font-bold ${unlocked ? 'text-candyGreen' : 'text-gray-400'} mt-1">
+            <span class="text-xs font-black ${unlocked ? 'text-yellow-700' : 'text-darkBrown'} mt-1">
               ${unlocked ? '已解鎖' : `未達成`}
             </span>
           </div>
@@ -758,7 +734,6 @@
       }).join('');
     }
 
-    // QUESTION BANK & SEARCH
     function renderBankList(filterText = '') {
       const container = document.getElementById('bank-list');
       const filtered = window.appState.allQuestions.filter(item => 
@@ -767,15 +742,15 @@
       );
 
       if (filtered.length === 0) {
-        container.innerHTML = `<div class="text-center text-gray-400 p-6 font-bold">找不到相符的題目喔 🧐</div>`;
+        container.innerHTML = `<div class="text-center text-darkBrown p-6 font-black">找不到相符的題目喔 🧐</div>`;
         return;
       }
 
       container.innerHTML = filtered.map((item, index) => `
         <div class="bg-amber-50 p-4 rounded-2xl border-2 border-darkBrown shadow-pop-sm space-y-2">
           <div class="flex justify-between items-start">
-            <span class="bg-candyPink text-white text-xs font-black px-2 py-0.5 rounded-md">#${index + 1}</span>
-            <span class="text-xs text-gray-400 font-bold">解答：${item.a}</span>
+            <span class="bg-candyPink text-white text-xs font-black px-2 py-0.5 rounded-md border border-darkBrown">#${index + 1}</span>
+            <span class="text-xs text-darkBrown font-black">解答：${item.a}</span>
           </div>
           <p class="font-black text-darkBrown text-base">${item.q}</p>
         </div>

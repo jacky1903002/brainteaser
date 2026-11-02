@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>腦筋急轉彎知識王 💡</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Font: Sniglet & Noto Sans TC -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Sniglet:wght@800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream: '#FDFBF7',
+            candyYellow: '#FFD166',
+            candyPink: '#FF6B6B',
+            candyBlue: '#4ECDC4',
+            candyGreen: '#06D6A0',
+            candyPurple: '#A29BFE',
+            darkBrown: '#4A3E3D'
+          },
+          fontFamily: {
+            custom: ['Sniglet', 'Noto Sans TC', 'sans-serif'],
+          },
+          boxShadow: {
+            'pop': '4px 4px 0px #4A3E3D',
+            'pop-sm': '2px 2px 0px #4A3E3D',
+            'pop-lg': '6px 6px 0px #4A3E3D',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #FDFBF7;
+      color: #4A3E3D;
+      font-family: 'Noto Sans TC', sans-serif;
+    }
+    .btn-pop {
+      transition: all 0.15s ease-in-out;
+    }
+    .btn-pop:hover {
+      transform: translate(-2px, -2px);
+    }
+    .btn-pop:active {
+      transform: translate(2px, 2px);
+      box-shadow: 0px 0px 0px #4A3E3D;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #FDFBF7;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #FFD166;
+      border-radius: 9999px;
+      border: 2px solid #4A3E3D;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col font-custom">
+
+  <!-- Header Bar -->
+  <header class="bg-candyYellow border-b-4 border-darkBrown sticky top-0 z-50 px-4 py-3 shadow-md">
+    <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-2">
+      <!-- Logo & Title -->
+      <div class="flex items-center space-x-2">
+        <span class="text-3xl">💡</span>
+        <h1 class="text-2xl md:text-3xl font-black text-darkBrown tracking-wider drop-shadow-sm">腦筋急轉彎知識王</h1>
+      </div>
+
+      <!-- Connection Status & Last Save Time -->
+      <div class="flex items-center space-x-3 text-xs md:text-sm font-bold">
+        <!-- Online/Offline Badge -->
+        <div id="connectionStatus" class="bg-white px-3 py-1 rounded-full border-2 border-darkBrown shadow-pop-sm flex items-center space-x-1">
+          <span class="inline-block w-3 h-3 rounded-full bg-gray-400 animate-pulse" id="statusDot"></span>
+          <span id="statusText" class="text-gray-600">連線檢查中...</span>
+        </div>
+
+        <!-- Last Saved Time -->
+        <div class="hidden sm:flex bg-white px-3 py-1 rounded-full border-2 border-darkBrown shadow-pop-sm items-center space-x-1">
+          <i class="fa-regular font-bold fa-clock text-candyPink"></i>
+          <span id="lastSaveTimeText" class="text-darkBrown">儲存時間: 尚未紀錄</span>
+        </div>
+
+        <!-- Auth Button / Info -->
+        <div id="authSection">
+          <button id="openAuthModalBtn" onclick="openAuthModal()" class="bg-candyPink text-white font-bold px-4 py-1.5 rounded-full border-2 border-darkBrown shadow-pop btn-pop flex items-center space-x-1">
+            <i class="fa-solid fa-user"></i>
+            <span>登入 / 註冊</span>
+          </button>
+          <div id="userInfo" class="hidden flex items-center space-x-2">
+            <span id="userEmail" class="hidden md:inline bg-white px-3 py-1 rounded-full border-2 border-darkBrown font-bold text-xs"></span>
+            <button onclick="handleLogout()" class="bg-candyPink text-white font-bold px-3 py-1 rounded-full border-2 border-darkBrown shadow-pop-sm btn-pop text-xs">
+              登出
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Sub-Header for Last Save Time -->
+  <div class="sm:hidden bg-amber-100 text-center py-1 text-xs border-b-2 border-darkBrown font-bold text-darkBrown">
+    <span id="lastSaveTimeTextMobile">儲存時間: 尚未紀錄</span>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <nav class="bg-white border-b-4 border-darkBrown py-2 px-2 shadow-sm">
+    <div class="max-w-4xl mx-auto flex justify-around items-center flex-wrap gap-1">
+      <button onclick="switchTab('quiz')" id="tab-quiz" class="tab-btn active-tab px-3 py-1.5 md:px-5 md:py-2 rounded-2xl border-2 border-darkBrown font-black text-xs md:text-base btn-pop bg-candyBlue text-white shadow-pop-sm">
+        <i class="fa-solid fa-gamepad mr-1"></i>開始測驗
+      </button>
+      <button onclick="switchTab('streak')" id="tab-streak" class="tab-btn px-3 py-1.5 md:px-5 md:py-2 rounded-2xl border-2 border-darkBrown font-black text-xs md:text-base btn-pop bg-white text-darkBrown">
+        <i class="fa-solid fa-fire mr-1 text-orange-500"></i>連續登入
+      </button>
+      <button onclick="switchTab('perfect')" id="tab-perfect" class="tab-btn px-3 py-1.5 md:px-5 md:py-2 rounded-2xl border-2 border-darkBrown font-black text-xs md:text-base btn-pop bg-white text-darkBrown">
+        <i class="fa-solid fa-trophy mr-1 text-yellow-500"></i>全對成就
+      </button>
+      <button onclick="switchTab('leaderboard')" id="tab-leaderboard" class="tab-btn px-3 py-1.5 md:px-5 md:py-2 rounded-2xl border-2 border-darkBrown font-black text-xs md:text-base btn-pop bg-white text-darkBrown">
+        <i class="fa-solid fa-ranking-star mr-1 text-purple-500"></i>排行榜
+      </button>
+      <button onclick="switchTab('bank')" id="tab-bank" class="tab-btn px-3 py-1.5 md:px-5 md:py-2 rounded-2xl border-2 border-darkBrown font-black text-xs md:text-base btn-pop bg-white text-darkBrown">
+        <i class="fa-solid fa-book-open mr-1 text-green-500"></i>所有題庫
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content Container -->
+  <main class="flex-grow max-w-4xl w-full mx-auto p-4 md:p-6">
+    
+    <!-- PAGE 1: QUIZ -->
+    <section id="page-quiz" class="page-content space-y-6">
+      <div class="bg-white rounded-3xl p-6 border-4 border-darkBrown shadow-pop relative overflow-hidden">
+        <div class="flex justify-between items-center mb-4">
+          <span id="quiz-progress" class="bg-candyYellow text-darkBrown font-black px-4 py-1 rounded-full border-2 border-darkBrown text-sm">
+            第 1 / 10 題
+          </span>
+          <span id="quiz-score" class="bg-candyGreen text-white font-black px-4 py-1 rounded-full border-2 border-darkBrown text-sm">
+            目前得分: 0
+          </span>
+        </div>
+
+        <!-- Question Display Card -->
+        <div class="bg-amber-50 rounded-2xl p-6 border-3 border-darkBrown mb-6 min-h-[140px] flex flex-col justify-center items-center text-center">
+          <p id="quiz-question" class="text-xl md:text-2xl font-black text-darkBrown leading-relaxed">
+            載入題目中...
+          </p>
+          <p id="quiz-hint" class="hidden mt-3 text-sm font-bold text-candyPink bg-white px-3 py-1 rounded-lg border border-candyPink">
+            💡 提示：<span id="hint-text"></span>
+          </p>
+        </div>
+
+        <!-- Interactive Options or Input -->
+        <div id="quiz-answers" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+          <!-- Options dynamically rendered here -->
+        </div>
+
+        <!-- Action Controls -->
+        <div class="flex justify-between items-center mt-6">
+          <button onclick="showHint()" class="bg-candyYellow text-darkBrown font-bold px-4 py-2 rounded-xl border-2 border-darkBrown shadow-pop-sm btn-pop text-sm">
+            <i class="fa-regular fa-lightbulb mr-1"></i>看提示
+          </button>
+          <button id="next-btn" onclick="nextQuestion()" class="hidden bg-candyGreen text-white font-black px-6 py-2 rounded-xl border-2 border-darkBrown shadow-pop btn-pop">
+            下一題 <i class="fa-solid fa-arrow-right ml-1"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quiz Summary Modal / Card (Hidden by default) -->
+      <div id="quiz-result-card" class="hidden bg-white rounded-3xl p-6 border-4 border-darkBrown shadow-pop text-center space-y-4">
+        <h2 class="text-3xl font-black text-candyPink">🎉 測驗完成！</h2>
+        <div class="text-6xl my-2" id="result-emoji">🏆</div>
+        <p class="text-xl font-bold">本次測驗得分：<span id="result-score" class="text-candyBlue text-3xl font-black">0</span> / 100</p>
+        <p id="perfect-msg" class="hidden bg-candyYellow text-darkBrown font-black p-3 rounded-xl border-2 border-darkBrown">
+          🌟 超級厲害！你達成了「10 題連續全對」！已經為您寫入成就紀錄！
+        </p>
+        <button onclick="startQuiz()" class="bg-candyBlue text-white font-black text-lg px-8 py-3 rounded-2xl border-3 border-darkBrown shadow-pop btn-pop mt-4">
+          再挑戰一次 🚀
+        </button>
+      </div>
+    </section>
+
+    <!-- PAGE 2: STREAK BADGES -->
+    <section id="page-streak" class="page-content hidden space-y-4">
+      <div class="bg-white rounded-3xl p-6 border-4 border-darkBrown shadow-pop">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+          <div>
+            <h2 class="text-2xl font-black text-darkBrown flex items-center">
+              <i class="fa-solid fa-fire text-orange-500 mr-2"></i>連續登入成就牆
+            </h2>
+            <p class="text-sm font-bold text-gray-500 mt-1">紀錄你的每日堅持，累積解鎖從 1 天至 1000 天的徽章！</p>
+          </div>
+          <div class="bg-orange-100 border-2 border-darkBrown px-4 py-2 rounded-2xl text-center">
+            <span class="text-xs font-bold text-gray-600 block">目前連續登入</span>
+            <span id="user-streak-days" class="text-2xl font-black text-orange-600">1</span> <span class="font-bold text-sm">天</span>
+          </div>
+        </div>
+
+        <!-- Badges Grid Container -->
+        <div id="streak-badges-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-h-[500px] overflow-y-auto p-2">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 3: PERFECT SCORE BADGES -->
+    <section id="page-perfect" class="page-content hidden space-y-4">
+      <div class="bg-white rounded-3xl p-6 border-4 border-darkBrown shadow-pop">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+          <div>
+            <h2 class="text-2xl font-black text-darkBrown flex items-center">
+              <i class="fa-solid fa-trophy text-yellow-500 mr-2"></i>連續全對挑戰牆
+            </h2>
+            <p class="text-sm font-bold text-gray-500 mt-1">每次測驗獲得 10 題全對即可累積 1 次！解鎖 1~1000 次超狂稱號！</p>
+          </div>
+          <div class="bg-yellow-100 border-2 border-darkBrown px-4 py-2 rounded-2xl text-center">
+            <span class="text-xs font-bold text-gray-600 block">全對成功次數</span>
+            <span id="user-perfect-count" class="text-2xl font-black text-yellow-600">0</span> <span class="font-bold text-sm">次</span>
+          </div>
+        </div>
+
+        <!-- Perfect Badges Grid -->
+        <div id="perfect-badges-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-h-[500px] overflow-y-auto p-2">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 4: LEADERBOARD -->
+    <section id="page-leaderboard" class="page-content hidden space-y-4">
+      <div class="bg-white rounded-3xl p-6 border-4 border-darkBrown shadow-pop">
+        <h2 class="text-2xl font-black text-darkBrown mb-4 flex items-center">
+          <i class="fa-solid fa-ranking-star text-purple-500 mr-2"></i>玩家英雄排行榜
+        </h2>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-candyYellow border-b-3 border-darkBrown text-darkBrown font-black text-sm md:text-base">
+                <th class="p-3 rounded-tl-xl border-2 border-darkBrown">排名</th>
+                <th class="p-3 border-2 border-darkBrown">玩家</th>
+                <th class="p-3 border-2 border-darkBrown text-center">最高分數</th>
+                <th class="p-3 border-2 border-darkBrown text-center">全對次數</th>
+                <th class="p-3 rounded-tr-xl border-2 border-darkBrown text-center">登入天數</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-body" class="font-bold text-sm">
+              <!-- Dynamically added -->
+              <tr>
+                <td colspan="5" class="text-center p-6 text-gray-400">正在讀取排行榜數據...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 5: QUESTION BANK & SEARCH -->
+    <section id="page-bank" class="page-content hidden space-y-4">
+      <div class="bg-white rounded-3xl p-6 border-4 border-darkBrown shadow-pop">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <h2 class="text-2xl font-black text-darkBrown flex items-center">
+            <i class="fa-solid fa-book-open text-green-500 mr-2"></i>完整腦筋急轉彎題庫
+          </h2>
+          <!-- Search Bar -->
+          <div class="relative w-full sm:w-64">
+            <input type="text" id="bank-search-input" oninput="filterBankQuestions()" placeholder="搜尋關鍵字..." class="w-full pl-9 pr-4 py-2 rounded-2xl border-2 border-darkBrown focus:outline-none focus:ring-2 focus:ring-candyYellow font-bold text-sm">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400 text-sm"></i>
+          </div>
+        </div>
+
+        <!-- Question List -->
+        <div id="bank-list" class="space-y-3 max-h-[550px] overflow-y-auto pr-1">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Auth Modal -->
+  <div id="authModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-cream rounded-3xl p-6 border-4 border-darkBrown shadow-pop max-w-md w-full relative space-y-4">
+      <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-darkBrown text-2xl font-black">✕</button>
+      
+      <div class="text-center">
+        <span class="text-4xl">🔑</span>
+        <h3 id="authModalTitle" class="text-2xl font-black text-darkBrown mt-2">玩家登入</h3>
+        <p class="text-xs font-bold text-gray-500">登入以儲存您的答題進度與成就戰績</p>
+      </div>
+
+      <form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-darkBrown mb-1">電子郵件 (Email)</label>
+          <input type="email" id="authEmail" required placeholder="example@mail.com" class="w-full px-4 py-2 rounded-xl border-2 border-darkBrown font-bold text-sm focus:outline-none focus:ring-2 focus:ring-candyYellow">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-darkBrown mb-1">密碼 (Password)</label>
+          <input type="password" id="authPassword" required placeholder="******" class="w-full px-4 py-2 rounded-xl border-2 border-darkBrown font-bold text-sm focus:outline-none focus:ring-2 focus:ring-candyYellow">
+        </div>
+
+        <div id="authError" class="hidden text-xs text-red-500 font-bold bg-red-50 p-2 rounded-lg border border-red-300"></div>
+
+        <button type="submit" id="authSubmitBtn" class="w-full bg-candyGreen text-white font-black py-3 rounded-xl border-2 border-darkBrown shadow-pop btn-pop text-base">
+          立即登入
+        </button>
+      </form>
+
+      <div class="text-center pt-2">
+        <button onclick="toggleAuthMode()" id="toggleAuthBtn" class="text-xs font-bold text-candyPink underline">
+          還沒有帳號？點此註冊新帳號
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase Web SDK (v9 Modulated imports script) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getAuth, 
+      signInWithEmailAndPassword, 
+      createUserWithEmailAndPassword, 
+      signOut, 
+      onAuthStateChanged 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { 
+      getDatabase, 
+      ref, 
+      set, 
+      get, 
+      onValue, 
+      update 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // Firebase Config (Replacing with demo fallback config structure for environment)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDemoKeyForBrainGameConfigOnly1234",
+      authDomain: "brain-quiz-game.firebaseapp.com",
+      databaseURL: "https://brain-quiz-game-default-rtdb.firebaseio.com",
+      projectId: "brain-quiz-game",
+      storageBucket: "brain-quiz-game.appspot.com",
+      messagingSenderId: "1234567890",
+      appId: "1:1234567890:web:demo123456"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    // Global App State
+    window.appState = {
+      user: null,
+      userData: {
+        score: 0,
+        streakDays: 1,
+        perfectCount: 0,
+        lastLoginDate: new Date().toISOString().split('T')[0],
+        lastSaveTime: null
+      },
+      isAuthModeLogin: true,
+      allQuestions: [],
+      currentQuiz: [],
+      quizIndex: 0,
+      quizScore: 0,
+      consecutiveCorrect: 0
+    };
+
+    // Preset Fallback Brain Questions Database (15+ Items)
+    const presetQuestions = [
+      { id: 1, q: "什麼樣的井百花開？", a: "天井", hint: "抬頭能看到天空的井", options: ["水井", "天井", "礦井", "深井"] },
+      { id: 2, q: "什麼人一年只工作一天？", a: "聖誕老人", hint: "只在 12 月 25 日出現", options: ["園丁", "老師", "聖誕老人", "郵差"] },
+      { id: 3, q: "什麼地方的菜不可以吃？", a: "書本裡的菜", hint: "比如「圖案」或「文字」", options: ["餐廳的菜", "書本裡的菜", "自己種的菜", "市場買的菜"] },
+      { id: 4, q: "什麼動物最沒有方向感？", a: "麋鹿", hint: "諧音「迷路」", options: ["老虎", "麋鹿", "大象", "企鵝"] },
+      { id: 5, q: "什麼水果最喜歡講話？", a: "葡萄", hint: "葡萄「萄」(討)論", options: ["蘋果", "香蕉", "葡萄", "西瓜"] },
+      { id: 6, q: "什麼車子不能載人？", a: "風車", hint: "轉啊轉吹風的", options: ["公車", "卡車", "風車", "腳踏車"] },
+      { id: 7, q: "哪種植物最老實？", a: "芭樂", hint: "芭樂「真」(針)", options: ["香蕉", "芭樂", "木瓜", "鳳梨"] },
+      { id: 8, q: "什麼東西越洗越髒？", a: "水", hint: "拿它去洗別的東西，它就髒了", options: ["衣服", "水", "碗盤", "車子"] },
+      { id: 9, q: "什麼貓是用兩隻腳走路的？", a: "Hello Kitty", hint: "知名動漫卡通角色", options: ["波斯貓", "黑貓", "Hello Kitty", "石虎"] },
+      { id: 10, q: "什麼鴨子是用兩隻腳走路的？", a: "所有的鴨子", hint: "別被上題騙了！", options: ["唐老鴨", "烤鴨", "鴨肉飯", "所有的鴨子"] },
+      { id: 11, q: "什麼水果最會打架？", a: "蓮霧", hint: "連武（蓮霧）雙全", options: ["蓮霧", "草莓", "芒果", "榴槤"] },
+      { id: 12, q: "什麼鎖沒有鑰匙？", a: "連環鎖", hint: "或是「封鎖」", options: ["門鎖", "連環鎖", "密碼鎖", "銅鎖"] },
+      { id: 13, q: "用什麼擦地最乾淨？", a: "用力", hint: "不是某種工具，是行動！", options: ["抹布", "拖把", "用力", "吸塵器"] },
+      { id: 14, q: "什麼東西跑得最快？", a: "時間", hint: "歲月不饒人", options: ["獵豹", "高鐵", "光", "時間"] },
+      { id: 15, q: "什麼字大家都會唸錯？", a: "錯", hint: "字面上就是「錯」字", options: ["難", "錯", "鳳", "鱻"] }
+    ];
+
+    // Load Database (Try fetch brain.json first, fallback to preset)
+    async function loadQuestionBank() {
+      try {
+        const response = await fetch('./brain.json');
+        if (response.ok) {
+          const data = await response.json();
+          window.appState.allQuestions = data;
+        } else {
+          window.appState.allQuestions = presetQuestions;
+        }
+      } catch (e) {
+        window.appState.allQuestions = presetQuestions;
+      }
+      renderBankList();
+      startQuiz();
+    }
+
+    // Monitor Firebase Connection (.info/connected)
+    function monitorConnection() {
+      const connectedRef = ref(db, ".info/connected");
+      onValue(connectedRef, (snap) => {
+        const isOnline = snap.val() === true;
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+
+        if (isOnline) {
+          statusDot.className = "inline-block w-3 h-3 rounded-full bg-candyGreen";
+          statusText.innerText = "🟢 已連線";
+          statusText.className = "text-candyGreen font-black";
+        } else {
+          statusDot.className = "inline-block w-3 h-3 rounded-full bg-candyPink animate-ping";
+          statusText.innerText = "🔴 離線中";
+          statusText.className = "text-candyPink font-black";
+        }
+      });
+    }
+
+    // Update Last Saved Timestamp
+    window.saveUserDataToFirebase = async function() {
+      if (!window.appState.user) return;
+
+      const now = new Date();
+      const timeStr = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+      
+      window.appState.userData.lastSaveTime = timeStr;
+
+      try {
+        const userRef = ref(db, `users/${window.appState.user.uid}`);
+        await update(userRef, {
+          email: window.appState.user.email,
+          score: window.appState.userData.score,
+          streakDays: window.appState.userData.streakDays,
+          perfectCount: window.appState.userData.perfectCount,
+          lastSaveTime: timeStr
+        });
+
+        // Update Header UI
+        document.getElementById('lastSaveTimeText').innerText = `儲存時間: ${timeStr}`;
+        document.getElementById('lastSaveTimeTextMobile').innerText = `儲存時間: ${timeStr}`;
+      } catch (e) {
+        console.warn("Save database attempt:", e.message);
+      }
+    };
+
+    // Firebase Auth State Observer
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        window.appState.user = user;
+        document.getElementById('openAuthModalBtn').classList.add('hidden');
+        document.getElementById('userInfo').classList.remove('hidden');
+        document.getElementById('userEmail').innerText = user.email;
+
+        // Fetch User Data from Database
+        try {
+          const userRef = ref(db, `users/${user.uid}`);
+          const snapshot = await get(userRef);
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            window.appState.userData = { ...window.appState.userData, ...data };
+            
+            // Calculate Daily Login Streak
+            const today = new Date().toISOString().split('T')[0];
+            if (data.lastLoginDate !== today) {
+              const last = new Date(data.lastLoginDate);
+              const diffTime = Math.abs(new Date(today) - last);
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+              if (diffDays === 1) {
+                window.appState.userData.streakDays += 1;
+              } else if (diffDays > 1) {
+                window.appState.userData.streakDays = 1;
+              }
+              window.appState.userData.lastLoginDate = today;
+              window.saveUserDataToFirebase();
+            }
+          } else {
+            // First time login
+            window.saveUserDataToFirebase();
+          }
+        } catch (err) {
+          console.warn("Read DB failed:", err);
+        }
+
+        renderStreakBadges();
+        renderPerfectBadges();
+        loadLeaderboard();
+      } else {
+        window.appState.user = null;
+        document.getElementById('openAuthModalBtn').classList.remove('hidden');
+        document.getElementById('userInfo').classList.add('hidden');
+      }
+    });
+
+    // Auth Submission Logic
+    window.handleAuthSubmit = async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('authEmail').value;
+      const pass = document.getElementById('authPassword').value;
+      const errBox = document.getElementById('authError');
+      errBox.classList.add('hidden');
+
+      try {
+        if (window.appState.isAuthModeLogin) {
+          await signInWithEmailAndPassword(auth, email, pass);
+        } else {
+          await createUserWithEmailAndPassword(auth, email, pass);
+        }
+        closeAuthModal();
+      } catch (err) {
+        errBox.innerText = "錯誤: " + err.message;
+        errBox.classList.remove('hidden');
+      }
+    };
+
+    window.handleLogout = function() {
+      signOut(auth);
+    };
+
+    // Load Leaderboard Data
+    function loadLeaderboard() {
+      const usersRef = ref(db, 'users');
+      onValue(usersRef, (snapshot) => {
+        const body = document.getElementById('leaderboard-body');
+        if (!snapshot.exists()) {
+          body.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-gray-400">目前尚無排行榜數據</td></tr>`;
+          return;
+        }
+
+        const data = snapshot.val();
+        const userList = Object.values(data);
+
+        // Sort by Score descending
+        userList.sort((a, b) => (b.score || 0) - (a.score || 0));
+
+        body.innerHTML = userList.slice(0, 10).map((u, i) => `
+          <tr class="${i % 2 === 0 ? 'bg-amber-50' : 'bg-white'} border-b border-gray-200 hover:bg-amber-100">
+            <td class="p-3 border-2 border-darkBrown font-black text-center">
+              ${i === 0 ? '🥇 1' : i === 1 ? '🥈 2' : i === 2 ? '🥉 3' : i + 1}
+            </td>
+            <td class="p-3 border-2 border-darkBrown">${u.email ? u.email.split('@')[0] + '***' : '神秘玩家'}</td>
+            <td class="p-3 border-2 border-darkBrown text-center text-candyPink font-black">${u.score || 0}</td>
+            <td class="p-3 border-2 border-darkBrown text-center text-yellow-600 font-black">${u.perfectCount || 0} 次</td>
+            <td class="p-3 border-2 border-darkBrown text-center text-orange-600 font-black">${u.streakDays || 1} 天</td>
+          </tr>
+        `).join('');
+      });
+    }
+
+    // App Startup Execution
+    window.addEventListener('DOMContentLoaded', () => {
+      monitorConnection();
+      loadQuestionBank();
+      renderStreakBadges();
+      renderPerfectBadges();
+    });
+  </script>
+
+  <!-- Main Game Logic JavaScript -->
+  <script>
+    // Tab Switcher Logic
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-candyBlue', 'text-white', 'shadow-pop-sm');
+        btn.classList.add('bg-white', 'text-darkBrown');
+      });
+
+      const activeBtn = document.getElementById(`tab-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('bg-white', 'text-darkBrown');
+        activeBtn.classList.add('bg-candyBlue', 'text-white', 'shadow-pop-sm');
+      }
+
+      document.querySelectorAll('.page-content').forEach(page => {
+        page.classList.add('hidden');
+      });
+      document.getElementById(`page-${tabId}`).classList.remove('hidden');
+    }
+
+    // Auth Modal Handlers
+    function openAuthModal() {
+      document.getElementById('authModal').classList.remove('hidden');
+    }
+    function closeAuthModal() {
+      document.getElementById('authModal').classList.add('hidden');
+    }
+    function toggleAuthMode() {
+      window.appState.isAuthModeLogin = !window.appState.isAuthModeLogin;
+      const title = document.getElementById('authModalTitle');
+      const submitBtn = document.getElementById('authSubmitBtn');
+      const toggleBtn = document.getElementById('toggleAuthBtn');
+
+      if (window.appState.isAuthModeLogin) {
+        title.innerText = "玩家登入";
+        submitBtn.innerText = "立 即 登 入";
+        toggleBtn.innerText = "還沒有帳號？點此註冊新帳號";
+      } else {
+        title.innerText = "註冊新帳號";
+        submitBtn.innerText = "立 即 註 冊";
+        toggleBtn.innerText = "已有帳號？點此登入";
+      }
+    }
+
+    // QUIZ FUNCTIONALITY
+    function startQuiz() {
+      const all = [...window.appState.allQuestions];
+      // Shuffle & pick 10
+      all.sort(() => 0.5 - Math.random());
+      window.appState.currentQuiz = all.slice(0, 10);
+      window.appState.quizIndex = 0;
+      window.appState.quizScore = 0;
+      window.appState.consecutiveCorrect = 0;
+
+      document.getElementById('quiz-result-card').classList.add('hidden');
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      const q = window.appState.currentQuiz[window.appState.quizIndex];
+      document.getElementById('quiz-progress').innerText = `第 ${window.appState.quizIndex + 1} / 10 題`;
+      document.getElementById('quiz-score').innerText = `目前得分: ${window.appState.quizScore}`;
+      document.getElementById('quiz-question').innerText = q.q;
+      document.getElementById('quiz-hint').classList.add('hidden');
+      document.getElementById('hint-text').innerText = q.hint || "無提示";
+      document.getElementById('next-btn').classList.add('hidden');
+
+      const container = document.getElementById('quiz-answers');
+      container.innerHTML = '';
+
+      q.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = "w-full bg-white text-darkBrown font-bold text-lg p-3 rounded-2xl border-2 border-darkBrown shadow-pop-sm btn-pop hover:bg-candyYellow text-left flex items-center justify-between";
+        btn.innerHTML = `<span>${opt}</span> <i class="fa-regular fa-circle text-gray-300"></i>`;
+        btn.onclick = () => checkAnswer(opt, q.a, btn);
+        container.appendChild(btn);
+      });
+    }
+
+    function showHint() {
+      document.getElementById('quiz-hint').classList.remove('hidden');
+    }
+
+    function checkAnswer(selected, correct, element) {
+      const allBtns = document.querySelectorAll('#quiz-answers button');
+      allBtns.forEach(b => b.disabled = true);
+
+      if (selected === correct) {
+        element.classList.remove('bg-white');
+        element.classList.add('bg-candyGreen', 'text-white');
+        element.querySelector('i').className = "fa-solid fa-circle-check text-white";
+        window.appState.quizScore += 10;
+        window.appState.consecutiveCorrect += 1;
+      } else {
+        element.classList.remove('bg-white');
+        element.classList.add('bg-candyPink', 'text-white');
+        element.querySelector('i').className = "fa-solid fa-circle-xmark text-white";
+
+        // Highlight correct option
+        allBtns.forEach(b => {
+          if (b.innerText.trim() === correct) {
+            b.classList.remove('bg-white');
+            b.classList.add('bg-candyGreen', 'text-white');
+          }
+        });
+      }
+
+      document.getElementById('next-btn').classList.remove('hidden');
+    }
+
+    function nextQuestion() {
+      window.appState.quizIndex += 1;
+      if (window.appState.quizIndex < 10) {
+        renderQuestion();
+      } else {
+        finishQuiz();
+      }
+    }
+
+    function finishQuiz() {
+      const finalScore = window.appState.quizScore;
+      document.getElementById('quiz-result-card').classList.remove('hidden');
+      document.getElementById('result-score').innerText = finalScore;
+
+      // Update User High Score
+      if (finalScore > window.appState.userData.score) {
+        window.appState.userData.score = finalScore;
+      }
+
+      // Perfect score check (10 / 10)
+      if (window.appState.consecutiveCorrect === 10) {
+        document.getElementById('perfect-msg').classList.remove('hidden');
+        window.appState.userData.perfectCount += 1;
+        renderPerfectBadges();
+      } else {
+        document.getElementById('perfect-msg').classList.add('hidden');
+      }
+
+      // Save progress to Firebase
+      if (window.saveUserDataToFirebase) {
+        window.saveUserDataToFirebase();
+      }
+    }
+
+    // BADGES RENDERERS (1 to 1000 Milestones)
+    const milestones = [1, 3, 7, 14, 30, 60, 100, 365, 500, 1000];
+
+    function renderStreakBadges() {
+      const userStreak = window.appState.userData.streakDays || 1;
+      document.getElementById('user-streak-days').innerText = userStreak;
+      
+      const grid = document.getElementById('streak-badges-grid');
+      grid.innerHTML = milestones.map(m => {
+        const unlocked = userStreak >= m;
+        return `
+          <div class="${unlocked ? 'bg-amber-100 border-amber-400' : 'bg-gray-100 border-gray-300 opacity-60'} border-3 border-darkBrown rounded-2xl p-4 text-center shadow-pop-sm flex flex-col items-center justify-center">
+            <div class="text-3xl mb-1">${unlocked ? '🔥' : '🔒'}</div>
+            <div class="font-black text-sm text-darkBrown">${m} 天徽章</div>
+            <span class="text-xs font-bold ${unlocked ? 'text-candyPink' : 'text-gray-400'} mt-1">
+              ${unlocked ? '已解鎖' : `未達成`}
+            </span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderPerfectBadges() {
+      const userPerfect = window.appState.userData.perfectCount || 0;
+      document.getElementById('user-perfect-count').innerText = userPerfect;
+
+      const grid = document.getElementById('perfect-badges-grid');
+      grid.innerHTML = milestones.map(m => {
+        const unlocked = userPerfect >= m;
+        return `
+          <div class="${unlocked ? 'bg-yellow-100 border-yellow-400' : 'bg-gray-100 border-gray-300 opacity-60'} border-3 border-darkBrown rounded-2xl p-4 text-center shadow-pop-sm flex flex-col items-center justify-center">
+            <div class="text-3xl mb-1">${unlocked ? '🏆' : '🔒'}</div>
+            <div class="font-black text-sm text-darkBrown">全對 ${m} 次</div>
+            <span class="text-xs font-bold ${unlocked ? 'text-candyGreen' : 'text-gray-400'} mt-1">
+              ${unlocked ? '已解鎖' : `未達成`}
+            </span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // QUESTION BANK & SEARCH
+    function renderBankList(filterText = '') {
+      const container = document.getElementById('bank-list');
+      const filtered = window.appState.allQuestions.filter(item => 
+        item.q.toLowerCase().includes(filterText.toLowerCase()) || 
+        item.a.toLowerCase().includes(filterText.toLowerCase())
+      );
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="text-center text-gray-400 p-6 font-bold">找不到相符的題目喔 🧐</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map((item, index) => `
+        <div class="bg-amber-50 p-4 rounded-2xl border-2 border-darkBrown shadow-pop-sm space-y-2">
+          <div class="flex justify-between items-start">
+            <span class="bg-candyPink text-white text-xs font-black px-2 py-0.5 rounded-md">#${index + 1}</span>
+            <span class="text-xs text-gray-400 font-bold">解答：${item.a}</span>
+          </div>
+          <p class="font-black text-darkBrown text-base">${item.q}</p>
+        </div>
+      `).join('');
+    }
+
+    function filterBankQuestions() {
+      const val = document.getElementById('bank-search-input').value;
+      renderBankList(val);
+    }
+  </script>
+</body>
+</html>

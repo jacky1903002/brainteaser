@@ -22,7 +22,7 @@
             candyBlue: '#4ECDC4',
             candyGreen: '#06D6A0',
             candyPurple: '#A29BFE',
-            darkBrown: '#2D2322' // 加深字體顏色以確保清晰
+            darkBrown: '#2D2322'
           },
           fontFamily: {
             custom: ['Sniglet', 'Noto Sans TC', 'sans-serif'],
@@ -41,7 +41,7 @@
       background-color: #FDFBF7;
       color: #2D2322;
       font-family: 'Noto Sans TC', sans-serif;
-      font-weight: 700; /* 預設加粗字體提升清晰度 */
+      font-weight: 700;
     }
     .btn-pop {
       transition: all 0.15s ease-in-out;
@@ -327,6 +327,7 @@
   <!-- Firebase Web SDK & App State Initialization -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";
     import { 
       getAuth, 
       signInWithEmailAndPassword, 
@@ -343,19 +344,20 @@
       update 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // Firebase Config (Demo fallback config)
+    // Your web app's Firebase configuration (帶入您的真實專案設定)
     const firebaseConfig = {
-      apiKey: "AIzaSyDemoKeyForBrainGameConfigOnly1234",
-      authDomain: "brain-quiz-game.firebaseapp.com",
-      databaseURL: "https://brain-quiz-game-default-rtdb.firebaseio.com",
-      projectId: "brain-quiz-game",
-      storageBucket: "brain-quiz-game.appspot.com",
-      messagingSenderId: "1234567890",
-      appId: "1:1234567890:web:demo123456"
+      apiKey: "AIzaSyCSLyC37awDqfmX8l82lMMl4fReFILkrGQ",
+      authDomain: "barinteaser.firebaseapp.com",
+      projectId: "barinteaser",
+      storageBucket: "barinteaser.firebasestorage.app",
+      messagingSenderId: "1022794068796",
+      appId: "1:1022794068796:web:3fa1090729caa1cf5b2439",
+      measurementId: "G-FM6PCX6GV2"
     };
 
-    // Initialize Firebase
+    // Initialize Firebase & Analytics
     const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
     const auth = getAuth(app);
     const db = getDatabase(app);
 
@@ -377,7 +379,7 @@
       consecutiveCorrect: 0
     };
 
-    // Preset Fallback Brain Questions Database (15+ Items) - 確保載入速度極快
+    // Preset Fallback Brain Questions Database (15+ Items)
     const presetQuestions = [
       { id: 1, q: "什麼樣的井百花開？", a: "天井", hint: "抬頭能看到天空的井", options: ["水井", "天井", "礦井", "深井"] },
       { id: 2, q: "什麼人一年只工作一天？", a: "聖誕老人", hint: "只在 12 月 25 日出現", options: ["園丁", "老師", "聖誕老人", "郵差"] },
@@ -391,14 +393,13 @@
       { id: 10, q: "什麼鴨子是用兩隻腳走路的？", a: "所有的鴨子", hint: "別被上題騙了！", options: ["唐老鴨", "烤鴨", "鴨肉飯", "所有的鴨子"] },
       { id: 11, q: "什麼水果最會打架？", a: "蓮霧", hint: "連武（蓮霧）雙全", options: ["蓮霧", "草莓", "芒果", "榴槤"] },
       { id: 12, q: "什麼鎖沒有鑰匙？", a: "連環鎖", hint: "或是「封鎖」", options: ["門鎖", "連環鎖", "密碼鎖", "銅鎖"] },
-      { id: 13, q: "用什麼擦地最乾淨？", a: "用力", hint: "不是某種工具，是行動！", options: ["抹布", "拖把", "用力", "吸塵器"] },
-      { id: 14, q: "什麼東西跑得最快？", a: "時間", hint: "歲月不饒人", options: ["獵豹", "高鐵", "光", "時間"] },
-      { id: 15, q: "什麼字大家都會唸錯？", a: "錯", hint: "字面上就是「錯」字", options: ["難", "錯", "鳳", "鱻"] }
+      { id: 13, q: "什麼東西跑得最快？", a: "時間", hint: "歲月不饒人", options: ["獵豹", "高鐵", "光", "時間"] },
+      { id: 14, q: "什麼字大家都會唸錯？", a: "錯", hint: "字面上就是「錯」字", options: ["難", "錯", "鳳", "鱻"] },
+      { id: 15, q: "用什麼擦地最乾淨？", a: "用力", hint: "不是某種工具，是行動！", options: ["抹布", "拖把", "用力", "吸塵器"] }
     ];
 
-    // Load Database (Fast fallback handling)
+    // Load Database
     async function loadQuestionBank() {
-      // 直接使用內建高效題庫，避免額外網路請求導致讀取過久
       window.appState.allQuestions = presetQuestions;
       renderBankList();
       startQuiz();

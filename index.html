@@ -245,17 +245,22 @@
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
           <div>
             <h2 class="text-2xl font-bold text-darkBrown flex items-center">
-              <i class="fa-solid fa-book-open text-green-500 mr-2"></i>萬件腦筋急轉彎題庫 (共 10,000 題)
+              <i class="fa-solid fa-book-open text-green-500 mr-2"></i>萬件腦筋急轉彎題庫
             </h2>
-            <p class="text-xs text-gray-500 mt-1 font-medium">使用下方搜尋或透過下拉式捲軸連續瀏覽所有題目</p>
+            <p class="text-xs text-gray-500 mt-1 font-medium">使用下方搜尋或點擊按鈕從 GitHub 自動載入最新 JSON 題庫</p>
           </div>
-          <div class="relative w-full sm:w-64">
-            <input type="text" id="bank-search-input" oninput="filterBankQuestions()" placeholder="搜尋關鍵字..." class="w-full pl-9 pr-4 py-2 rounded-2xl border-2 border-darkBrown focus:outline-none focus:ring-2 focus:ring-candyYellow font-medium text-sm">
-            <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400 text-sm"></i>
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <button onclick="loadGithubJsonBank()" class="bg-candyGreen text-white font-bold px-4 py-2 rounded-2xl border-2 border-darkBrown shadow-pop-sm btn-pop text-sm flex items-center space-x-1 whitespace-nowrap">
+              <i class="fa-solid fa-cloud-arrow-down mr-1"></i>從 GitHub 載入 JSON
+            </button>
+            <div class="relative w-full sm:w-48">
+              <input type="text" id="bank-search-input" oninput="filterBankQuestions()" placeholder="搜尋關鍵字..." class="w-full pl-9 pr-4 py-2 rounded-2xl border-2 border-darkBrown focus:outline-none focus:ring-2 focus:ring-candyYellow font-medium text-sm">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400 text-sm"></i>
+            </div>
           </div>
         </div>
 
-        <!-- Scrollable container for 10000 questions -->
+        <!-- Scrollable container for questions -->
         <div id="bank-list" onscroll="handleBankScroll(event)" class="space-y-3 h-[550px] overflow-y-auto pr-2 border-2 border-darkBrown p-4 rounded-2xl bg-amber-50/50">
           <!-- Dynamically populated -->
         </div>
@@ -352,8 +357,8 @@
       bankDisplayLimit: 30
     };
 
-    // 產生 10,000 題龐大題庫
-    function generateTenThousandQuestions() {
+    // 預設產生題庫（當遠端尚未載入時使用）
+    function generateDefaultQuestions() {
       const base = [
         { q: "什麼樣的井百花開？", a: "天井", hint: "抬頭能看到天空的井", options: ["水井", "天井", "礦井", "深井"] },
         { q: "什麼人一年只工作一天？", a: "聖誕老人", hint: "只在 12 月 25 日出現", options: ["園丁", "老師", "聖誕老人", "郵差"] },
@@ -368,7 +373,7 @@
       ];
 
       const list = [];
-      for (let i = 1; i <= 10000; i++) {
+      for (let i = 1; i <= 1000; i++) {
         const item = base[(i - 1) % base.length];
         list.push({
           id: i,
@@ -381,8 +386,38 @@
       return list;
     }
 
-    async function loadQuestionBank() {
-      window.appState.allQuestions = generateTenThousandQuestions();
+    // 自動從 GitHub 載入 JSON 題庫函式
+    window.loadGithubJsonBank = async function() {
+      // 請將下方網址替換為你實際的 GitHub Raw JSON 網址
+      const githubJsonUrl = "https://raw.githubusercontent.com/你的GitHub帳號/你的倉庫名稱/main/questions.json";
+      
+      const container = document.getElementById('bank-list');
+      container.innerHTML = `<div class="text-center p-6 text-candyBlue font-bold"><i class="fa-solid fa-spinner fa-spin mr-2"></i>正在從 GitHub 載入最新 JSON 題庫中...</div>`;
+
+      try {
+        const response = await fetch(githubJsonUrl);
+        if (!response.ok) throw new Error(`HTTP 錯誤！狀態碼：${response.status}`);
+        
+        const data = await response.json();
+        if (Array.isArray(data) && data.length > 0) {
+          window.appState.allQuestions = data;
+          renderBankList();
+          startQuiz();
+          alert(`🎉 成功從 GitHub 載入 ${data.length} 筆題目！`);
+        } else {
+          throw new Error("JSON 格式不符預期（需為陣列格式）");
+        }
+      } catch (err) {
+        console.warn("從 GitHub 載入失敗，改用預設題庫:", err);
+        alert(`⚠️ 無法連線至 GitHub 載入題庫（或網址錯誤）。\n原因：${err.message}\n已自動載入內建備用題庫。`);
+        window.appState.allQuestions = generateDefaultQuestions();
+        renderBankList();
+        startQuiz();
+      }
+    };
+
+    async function initApp() {
+      window.appState.allQuestions = generateDefaultQuestions();
       renderBankList();
       startQuiz();
     }
@@ -526,7 +561,7 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       monitorConnection();
-      loadQuestionBank();
+      initApp();
       renderStreakBadges();
       renderPerfectBadges();
     });
@@ -576,6 +611,7 @@
     }
 
     function startQuiz() {
+      if (!window.appState.allQuestions || window.appState.allQuestions.length === 0) return;
       const all = [...window.appState.allQuestions];
       all.sort(() => 0.5 - Math.random());
       window.appState.currentQuiz = all.slice(0, 10);
@@ -707,16 +743,15 @@
       }).join('');
     }
 
-    // 題庫下拉式連續瀏覽 (支援 10000 題動態載入)
+    // 題庫下拉式連續瀏覽
     function renderBankList(filterText = '') {
-      const container = document.getElementById('bank-list');
       const filtered = window.appState.allQuestions.filter(item => 
         item.q.toLowerCase().includes(filterText.toLowerCase()) || 
         item.a.toLowerCase().includes(filterText.toLowerCase())
       );
 
       window.appState.filteredQuestions = filtered;
-      window.appState.bankDisplayLimit = 30; // 初始顯示 30 筆
+      window.appState.bankDisplayLimit = 30;
       updateBankListDOM();
     }
 
@@ -734,7 +769,7 @@
       let html = subset.map((item, index) => `
         <div class="bg-white p-4 rounded-2xl border-2 border-darkBrown shadow-pop-sm space-y-2">
           <div class="flex justify-between items-start">
-            <span class="bg-candyPink text-white text-xs font-bold px-2 py-0.5 rounded-md">#${item.id}</span>
+            <span class="bg-candyPink text-white text-xs font-bold px-2 py-0.5 rounded-md">#${item.id || (index+1)}</span>
             <span class="text-xs text-gray-500 font-medium">解答：${item.a}</span>
           </div>
           <p class="font-bold text-darkBrown text-base">${item.q}</p>
@@ -752,7 +787,6 @@
 
     function handleBankScroll(e) {
       const el = e.target;
-      // 當滾動接近底部時自動載入更多
       if (el.scrollTop + el.clientHeight >= el.scrollHeight - 50) {
         const filtered = window.appState.filteredQuestions || window.appState.allQuestions;
         if (window.appState.bankDisplayLimit < filtered.length) {

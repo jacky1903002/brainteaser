@@ -247,11 +247,11 @@
             <h2 class="text-2xl font-bold text-darkBrown flex items-center">
               <i class="fa-solid fa-book-open text-green-500 mr-2"></i>腦筋急轉彎題庫
             </h2>
-            <p class="text-xs text-gray-500 mt-1 font-medium">點擊按鈕從 GitHub 自動載入 brain.json 題庫</p>
+            <p class="text-xs text-gray-500 mt-1 font-medium">開機自動讀取 brain.json，亦可點擊按鈕手動重新載入</p>
           </div>
           <div class="flex items-center gap-2 w-full sm:w-auto">
             <button onclick="loadGithubJsonBank()" class="bg-candyGreen text-white font-bold px-4 py-2 rounded-2xl border-2 border-darkBrown shadow-pop-sm btn-pop text-sm flex items-center space-x-1 whitespace-nowrap">
-              <i class="fa-solid fa-cloud-arrow-down mr-1"></i>從 GitHub 載入 brain.json
+              <i class="fa-solid fa-cloud-arrow-down mr-1"></i>重新載入題庫
             </button>
             <div class="relative w-full sm:w-48">
               <input type="text" id="bank-search-input" oninput="filterBankQuestions()" placeholder="搜尋關鍵字..." class="w-full pl-9 pr-4 py-2 rounded-2xl border-2 border-darkBrown focus:outline-none focus:ring-2 focus:ring-candyYellow font-medium text-sm">
@@ -357,7 +357,7 @@
       bankDisplayLimit: 30
     };
 
-    // 預設備用題庫
+    // 內建備用題庫（若 GitHub 讀取失敗時使用）
     function generateDefaultQuestions() {
       const base = [
         { id: 1, question: "包子跟饅頭誰比較適合當臥底？", answer: "饅頭適合當臥底（因為包子會露餡）", category: "諧音梗" },
@@ -367,12 +367,13 @@
     }
 
     // 自動從 GitHub 載入 brain.json 題庫函式
-    window.loadGithubJsonBank = async function() {
-      // ⚠️ 請將下方網址替換為你實際的 GitHub Raw 網址 (例如你的帳號與倉庫名稱)
+    window.loadGithubJsonBank = async function(isStartup = false) {
       const githubJsonUrl = "https://raw.githubusercontent.com/jacky1903002/brainteaser/main/brain.json";
       
       const container = document.getElementById('bank-list');
-      container.innerHTML = `<div class="text-center p-6 text-candyBlue font-bold"><i class="fa-solid fa-spinner fa-spin mr-2"></i>正在從 GitHub 載入 brain.json 題庫中...</div>`;
+      if (!isStartup) {
+        container.innerHTML = `<div class="text-center p-6 text-candyBlue font-bold"><i class="fa-solid fa-spinner fa-spin mr-2"></i>正在從 GitHub 載入 brain.json 題庫中...</div>`;
+      }
 
       try {
         const response = await fetch(githubJsonUrl);
@@ -380,7 +381,6 @@
         
         const data = await response.json();
         if (Array.isArray(data) && data.length > 0) {
-          // 對應你的 question / answer / category 欄位
           window.appState.allQuestions = data.map((item, index) => ({
             id: item.id || (index + 1),
             q: item.question,
@@ -391,13 +391,17 @@
 
           renderBankList();
           startQuiz();
-          alert(`🎉 成功從 GitHub 載入 ${data.length} 筆 brain.json 題目！`);
+          if (!isStartup) {
+            alert(`🎉 成功從 GitHub 載入 ${data.length} 筆 brain.json 題目！`);
+          }
         } else {
           throw new Error("JSON 格式不符預期（需為陣列格式）");
         }
       } catch (err) {
         console.warn("從 GitHub 載入失敗，改用預設題庫:", err);
-        alert(`⚠️ 無法連線至 GitHub 載入題庫。\n原因：${err.message}\n已自動載入內建備用題庫。`);
+        if (!isStartup) {
+          alert(`⚠️ 無法連線至 GitHub 載入題庫。\n原因：${err.message}\n已自動載入內建備用題庫。`);
+        }
         
         const rawDefault = generateDefaultQuestions();
         window.appState.allQuestions = rawDefault.map((item, index) => ({
@@ -420,7 +424,6 @@
       
       wrongAnswers.sort(() => 0.5 - Math.random());
       
-      // 若題庫選項不夠多，提供一些預設備用答案以防萬一
       const fallbackPool = ["不知道", "不知道為什麼", "沒有這回事", "太難了"];
       while (wrongAnswers.length < 3) {
         wrongAnswers.push(fallbackPool[Math.floor(Math.random() * fallbackPool.length)]);
@@ -432,16 +435,8 @@
     }
 
     async function initApp() {
-      const rawDefault = generateDefaultQuestions();
-      window.appState.allQuestions = rawDefault.map((item, index) => ({
-        id: item.id,
-        q: item.question,
-        a: item.answer,
-        hint: `分類：${item.category}`,
-        options: generateOptions(item.answer, rawDefault)
-      }));
-      renderBankList();
-      startQuiz();
+      // 網頁一打開（或 F5 重新整理）時，自動在背景呼叫 GitHub 載入
+      await window.loadGithubJsonBank(true);
     }
 
     function monitorConnection() {
@@ -765,7 +760,7 @@
       }).join('');
     }
 
-    // 題庫列表顯示 (支援 question / answer)
+    // 題庫列表顯示
     function renderBankList(filterText = '') {
       const filtered = window.appState.allQuestions.filter(item => 
         item.q.toLowerCase().includes(filterText.toLowerCase()) || 

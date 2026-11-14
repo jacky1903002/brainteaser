@@ -369,7 +369,7 @@
     // 自動從 GitHub 載入 brain.json 題庫函式
     window.loadGithubJsonBank = async function() {
       // ⚠️ 請將下方網址替換為你實際的 GitHub Raw 網址 (例如你的帳號與倉庫名稱)
-      const githubJsonUrl = "https://raw.githubusercontent.com/你的GitHub帳號/你的倉庫名稱/main/brain.json";
+      const githubJsonUrl = "https://raw.githubusercontent.com/jacky1903002/brainteaser/main/brain.json";
       
       const container = document.getElementById('bank-list');
       container.innerHTML = `<div class="text-center p-6 text-candyBlue font-bold"><i class="fa-solid fa-spinner fa-spin mr-2"></i>正在從 GitHub 載入 brain.json 題庫中...</div>`;

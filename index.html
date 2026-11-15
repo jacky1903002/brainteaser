@@ -239,18 +239,21 @@
       </div>
     </section>
 
-    <!-- PAGE 5: QUESTION BANK (Infinite Scroll) -->
+    <!-- PAGE 5: QUESTION BANK (Infinite Scroll + Starred Top) -->
     <section id="page-bank" class="page-content hidden space-y-4">
       <div class="bg-white rounded-3xl p-6 border-4 border-darkBrown shadow-pop">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
           <div>
             <h2 class="text-2xl font-bold text-darkBrown flex items-center">
               <i class="fa-solid fa-book-open text-green-500 mr-2"></i>腦筋急轉彎題庫
+              <span id="starred-count-badge" class="ml-2 bg-candyYellow text-darkBrown text-xs font-bold px-2.5 py-0.5 rounded-full border-2 border-darkBrown">
+                ⭐ 0
+              </span>
             </h2>
-            <p class="text-xs text-gray-500 mt-1 font-medium">開機自動讀取 brain.json，亦可點擊按鈕手動重新載入</p>
+            <p class="text-xs text-gray-500 mt-1 font-medium">點擊右上角星號可置頂收藏題目（自動同步儲存）</p>
           </div>
           <div class="flex items-center gap-2 w-full sm:w-auto">
-            <button onclick="loadGithubJsonBank()" class="bg-candyGreen text-white font-bold px-4 py-2 rounded-2xl border-2 border-darkBrown shadow-pop-sm btn-pop text-sm flex items-center space-x-1 whitespace-nowrap">
+            <button onclick="loadGithubJsonBank(false, true)" class="bg-candyGreen text-white font-bold px-4 py-2 rounded-2xl border-2 border-darkBrown shadow-pop-sm btn-pop text-sm flex items-center space-x-1 whitespace-nowrap">
               <i class="fa-solid fa-cloud-arrow-down mr-1"></i>重新載入題庫
             </button>
             <div class="relative w-full sm:w-48">
@@ -277,7 +280,7 @@
       <div class="text-center">
         <span class="text-4xl">🔑</span>
         <h3 id="authModalTitle" class="text-2xl font-bold text-darkBrown mt-2">玩家登入</h3>
-        <p class="text-xs font-medium text-gray-600">登入以儲存您的答題進度與成就戰績</p>
+        <p class="text-xs font-medium text-gray-600">登入以儲存您的答題進度與星號收藏紀錄</p>
       </div>
 
       <form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-4">
@@ -339,6 +342,9 @@
     const auth = getAuth(app);
     const db = getDatabase(app);
 
+    // 讀取本地預先儲存的星號清單
+    const savedLocalStars = JSON.parse(localStorage.getItem('brainteaser_starred_ids') || '[]');
+
     window.appState = {
       user: null,
       userData: {
@@ -346,10 +352,13 @@
         streakDays: 1,
         perfectCount: 0,
         lastLoginDate: new Date().toISOString().split('T')[0],
-        lastSaveTime: null
+        lastSaveTime: null,
+        starredIds: savedLocalStars
       },
+      starredSet: new Set(savedLocalStars),
       isAuthModeLogin: true,
       allQuestions: [],
+      answerPool: [],
       currentQuiz: [],
       quizIndex: 0,
       quizScore: 0,
@@ -357,40 +366,79 @@
       bankDisplayLimit: 30
     };
 
-    // 內建備用題庫（若 GitHub 讀取失敗時使用）
+    // 內建備用題庫
     function generateDefaultQuestions() {
-      const base = [
+      return [
         { id: 1, question: "包子跟饅頭誰比較適合當臥底？", answer: "饅頭適合當臥底（因為包子會露餡）", category: "諧音梗" },
         { id: 2, question: "綠豆從高樓跳下來會變什麼？", answer: "紅豆（因為流血了）", category: "諧音梗" }
       ];
-      return base;
     }
 
-    // 自動從 GitHub 載入 brain.json 題庫函式
-    window.loadGithubJsonBank = async function(isStartup = false) {
+    // 快速建立題庫資料結構（O(N) 複雜度，避免上萬筆資料迴圈卡頓）
+    function processRawQuestions(rawData) {
+      const uniqueAnswers = Array.from(new Set(rawData.map(item => item.answer).filter(Boolean)));
+      window.appState.answerPool = uniqueAnswers;
+
+      window.appState.allQuestions = rawData.map((item, index) => ({
+        id: item.id !== undefined ? item.id : (index + 1),
+        q: item.question,
+        a: item.answer,
+        hint: `分類：${item.category || '趣味'}`
+      }));
+    }
+
+    // 自動從 GitHub 載入 brain.json（支援本地快取秒開 + 背景更新）
+    window.loadGithubJsonBank = async function(isStartup = false, forceRefresh = false) {
       const githubJsonUrl = "https://raw.githubusercontent.com/jacky1903002/brainteaser/main/brain.json";
-      
+      const CACHE_KEY = "brainteaser_bank_cache_v1";
       const container = document.getElementById('bank-list');
+
+      // 1. 啟動時優先讀取本地快取，達成 0 毫秒瞬間載入
+      if (isStartup && !forceRefresh) {
+        try {
+          const cachedStr = localStorage.getItem(CACHE_KEY);
+          if (cachedStr) {
+            const cachedData = JSON.parse(cachedStr);
+            if (Array.isArray(cachedData) && cachedData.length > 0) {
+              processRawQuestions(cachedData);
+              renderBankList();
+              startQuiz();
+            }
+          }
+        } catch (e) {
+          console.warn("快取讀取略過:", e);
+        }
+      }
+
       if (!isStartup) {
         container.innerHTML = `<div class="text-center p-6 text-candyBlue font-bold"><i class="fa-solid fa-spinner fa-spin mr-2"></i>正在從 GitHub 載入 brain.json 題庫中...</div>`;
       }
 
+      // 2. 向 GitHub 抓取最新資料（背景靜默更新或手動強制重整）
       try {
-        const response = await fetch(githubJsonUrl);
+        const response = await fetch(githubJsonUrl, { cache: forceRefresh ? "reload" : "default" });
         if (!response.ok) throw new Error(`HTTP 錯誤！狀態碼：${response.status}`);
         
         const data = await response.json();
         if (Array.isArray(data) && data.length > 0) {
-          window.appState.allQuestions = data.map((item, index) => ({
-            id: item.id || (index + 1),
-            q: item.question,
-            a: item.answer,
-            hint: `分類：${item.category || '趣味'}`,
-            options: generateOptions(item.answer, data)
-          }));
+          const isDifferentCount = window.appState.allQuestions.length !== data.length;
+          
+          // 更新本地快取
+          try {
+            localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+          } catch (storageErr) {
+            console.warn("題庫過大，略過 localStorage 快取:", storageErr);
+          }
 
-          renderBankList();
-          startQuiz();
+          // 若無快取、強制重整或題數有變動，才重新渲染 DOM
+          if (window.appState.allQuestions.length === 0 || forceRefresh || isDifferentCount) {
+            processRawQuestions(data);
+            renderBankList(document.getElementById('bank-search-input')?.value || '');
+            if (window.appState.currentQuiz.length === 0) {
+              startQuiz();
+            }
+          }
+
           if (!isStartup) {
             alert(`🎉 成功從 GitHub 載入 ${data.length} 筆 brain.json 題目！`);
           }
@@ -398,45 +446,21 @@
           throw new Error("JSON 格式不符預期（需為陣列格式）");
         }
       } catch (err) {
-        console.warn("從 GitHub 載入失敗，改用預設題庫:", err);
+        console.warn("從 GitHub 載入失敗:", err);
         if (!isStartup) {
-          alert(`⚠️ 無法連線至 GitHub 載入題庫。\n原因：${err.message}\n已自動載入內建備用題庫。`);
+          alert(`⚠️ 無法連線至 GitHub 載入題庫。\n原因：${err.message}\n已載入備用題庫。`);
         }
         
-        const rawDefault = generateDefaultQuestions();
-        window.appState.allQuestions = rawDefault.map((item, index) => ({
-          id: item.id,
-          q: item.question,
-          a: item.answer,
-          hint: `分類：${item.category}`,
-          options: generateOptions(item.answer, rawDefault)
-        }));
-        renderBankList();
-        startQuiz();
+        if (window.appState.allQuestions.length === 0) {
+          processRawQuestions(generateDefaultQuestions());
+          renderBankList();
+          startQuiz();
+        }
       }
     };
 
-    // 自動產生選擇題選項
-    function generateOptions(correctAnswer, allData) {
-      const wrongAnswers = allData
-        .map(item => item.answer)
-        .filter(ans => ans !== correctAnswer);
-      
-      wrongAnswers.sort(() => 0.5 - Math.random());
-      
-      const fallbackPool = ["不知道", "不知道為什麼", "沒有這回事", "太難了"];
-      while (wrongAnswers.length < 3) {
-        wrongAnswers.push(fallbackPool[Math.floor(Math.random() * fallbackPool.length)]);
-      }
-
-      const options = [correctAnswer, ...wrongAnswers.slice(0, 3)];
-      options.sort(() => 0.5 - Math.random());
-      return options;
-    }
-
     async function initApp() {
-      // 網頁一打開（或 F5 重新整理）時，自動在背景呼叫 GitHub 載入
-      await window.loadGithubJsonBank(true);
+      await window.loadGithubJsonBank(true, false);
     }
 
     function monitorConnection() {
@@ -459,6 +483,10 @@
     }
 
     window.saveUserDataToFirebase = async function() {
+      const starredArray = Array.from(window.appState.starredSet);
+      window.appState.userData.starredIds = starredArray;
+      localStorage.setItem('brainteaser_starred_ids', JSON.stringify(starredArray));
+
       if (!window.appState.user) return;
       const now = new Date();
       const timeStr = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
@@ -471,6 +499,7 @@
           score: window.appState.userData.score,
           streakDays: window.appState.userData.streakDays,
           perfectCount: window.appState.userData.perfectCount,
+          starredIds: starredArray,
           lastSaveTime: timeStr
         });
         document.getElementById('lastSaveTimeText').innerText = `儲存時間: ${timeStr}`;
@@ -493,6 +522,13 @@
           if (snapshot.exists()) {
             const data = snapshot.val();
             window.appState.userData = { ...window.appState.userData, ...data };
+
+            // 同步雲端與本地的星號收藏清單
+            const cloudStars = Array.isArray(data.starredIds) ? data.starredIds : [];
+            const mergedStars = new Set([...window.appState.starredSet, ...cloudStars]);
+            window.appState.starredSet = mergedStars;
+            localStorage.setItem('brainteaser_starred_ids', JSON.stringify(Array.from(mergedStars)));
+            renderBankList(document.getElementById('bank-search-input')?.value || '');
             
             const today = new Date().toISOString().split('T')[0];
             if (data.lastLoginDate !== today) {
@@ -506,6 +542,8 @@
                 window.appState.userData.streakDays = 1;
               }
               window.appState.userData.lastLoginDate = today;
+              window.saveUserDataToFirebase();
+            } else if (mergedStars.size !== cloudStars.length) {
               window.saveUserDataToFirebase();
             }
           } else {
@@ -627,11 +665,52 @@
       }
     }
 
+    // 僅針對抽出的 10 題即時產生選項，極大幅度降低初始化運算時間
+    function buildOptionsForQuestion(correctAnswer) {
+      const pool = window.appState.answerPool || [];
+      const wrongSet = new Set();
+      let attempts = 0;
+
+      while (wrongSet.size < 3 && attempts < 50 && pool.length > 1) {
+        const randAns = pool[Math.floor(Math.random() * pool.length)];
+        if (randAns !== correctAnswer) {
+          wrongSet.add(randAns);
+        }
+        attempts++;
+      }
+
+      const fallbackPool = ["不知道", "沒有這回事", "太難猜了", "問得好！"];
+      let fIdx = 0;
+      while (wrongSet.size < 3) {
+        if (fallbackPool[fIdx] !== correctAnswer) {
+          wrongSet.add(fallbackPool[fIdx]);
+        }
+        fIdx = (fIdx + 1) % fallbackPool.length;
+      }
+
+      const options = [correctAnswer, ...Array.from(wrongSet)];
+      return options.sort(() => 0.5 - Math.random());
+    }
+
     function startQuiz() {
-      if (!window.appState.allQuestions || window.appState.allQuestions.length === 0) return;
-      const all = [...window.appState.allQuestions];
-      all.sort(() => 0.5 - Math.random());
-      window.appState.currentQuiz = all.slice(0, 10);
+      const all = window.appState.allQuestions;
+      if (!all || all.length === 0) return;
+
+      // 使用不重複隨機索引抽取 10 題，避免複製與排序整份萬筆陣列
+      const count = Math.min(10, all.length);
+      const pickedIndices = new Set();
+      while (pickedIndices.size < count) {
+        pickedIndices.add(Math.floor(Math.random() * all.length));
+      }
+
+      window.appState.currentQuiz = Array.from(pickedIndices).map(idx => {
+        const item = all[idx];
+        return {
+          ...item,
+          options: buildOptionsForQuestion(item.a)
+        };
+      });
+
       window.appState.quizIndex = 0;
       window.appState.quizScore = 0;
       window.appState.consecutiveCorrect = 0;
@@ -642,7 +721,7 @@
 
     function renderQuestion() {
       const q = window.appState.currentQuiz[window.appState.quizIndex];
-      document.getElementById('quiz-progress').innerText = `第 ${window.appState.quizIndex + 1} / 10 題`;
+      document.getElementById('quiz-progress').innerText = `第 ${window.appState.quizIndex + 1} / ${window.appState.currentQuiz.length} 題`;
       document.getElementById('quiz-score').innerText = `目前得分: ${window.appState.quizScore}`;
       document.getElementById('quiz-question').innerText = q.q;
       document.getElementById('quiz-hint').classList.add('hidden');
@@ -693,7 +772,7 @@
 
     function nextQuestion() {
       window.appState.quizIndex += 1;
-      if (window.appState.quizIndex < 10) {
+      if (window.appState.quizIndex < window.appState.currentQuiz.length) {
         renderQuestion();
       } else {
         finishQuiz();
@@ -760,15 +839,61 @@
       }).join('');
     }
 
-    // 題庫列表顯示
-    function renderBankList(filterText = '') {
+    // 切換星號收藏狀態並重新置頂排序
+    function toggleStarQuestion(id) {
+      const starredSet = window.appState.starredSet;
+      if (starredSet.has(id)) {
+        starredSet.delete(id);
+      } else {
+        starredSet.add(id);
+      }
+
+      // 儲存至本地與雲端
+      if (window.saveUserDataToFirebase) {
+        window.saveUserDataToFirebase();
+      } else {
+        localStorage.setItem('brainteaser_starred_ids', JSON.stringify(Array.from(starredSet)));
+      }
+
+      // 保持目前捲動位置並更新列表（星號項目自動置頂）
+      const container = document.getElementById('bank-list');
+      const currentScroll = container.scrollTop;
+      const keyword = document.getElementById('bank-search-input').value;
+      renderBankList(keyword, false);
+      container.scrollTop = currentScroll;
+    }
+
+    // 題庫列表顯示（星號置頂排序）
+    function renderBankList(filterText = '', resetLimit = true) {
+      const kw = filterText.trim().toLowerCase();
+      const starredSet = window.appState.starredSet || new Set();
+
+      // 更新上方星號總數徽章
+      const badgeEl = document.getElementById('starred-count-badge');
+      if (badgeEl) {
+        badgeEl.innerText = `⭐ ${starredSet.size}`;
+      }
+
       const filtered = window.appState.allQuestions.filter(item => 
-        item.q.toLowerCase().includes(filterText.toLowerCase()) || 
-        item.a.toLowerCase().includes(filterText.toLowerCase())
+        !kw ||
+        item.q.toLowerCase().includes(kw) || 
+        item.a.toLowerCase().includes(kw)
       );
 
+      // 排序邏輯：星號排在最上方，其餘依原本 ID 順序排列
+      filtered.sort((a, b) => {
+        const aStar = starredSet.has(a.id) ? 1 : 0;
+        const bStar = starredSet.has(b.id) ? 1 : 0;
+        if (bStar !== aStar) {
+          return bStar - aStar;
+        }
+        return (a.id || 0) - (b.id || 0);
+      });
+
       window.appState.filteredQuestions = filtered;
-      window.appState.bankDisplayLimit = 30;
+      if (resetLimit) {
+        window.appState.bankDisplayLimit = 30;
+      }
       updateBankListDOM();
     }
 
@@ -777,22 +902,36 @@
       const filtered = window.appState.filteredQuestions || window.appState.allQuestions;
       const limit = window.appState.bankDisplayLimit;
       const subset = filtered.slice(0, limit);
+      const starredSet = window.appState.starredSet || new Set();
 
       if (subset.length === 0) {
         container.innerHTML = `<div class="text-center text-gray-400 p-6 font-medium">找不到相符的題目喔 🧐</div>`;
         return;
       }
 
-      let html = subset.map((item, index) => `
-        <div class="bg-white p-4 rounded-2xl border-2 border-darkBrown shadow-pop-sm space-y-2">
-          <div class="flex justify-between items-start">
-            <span class="bg-candyPink text-white text-xs font-bold px-2 py-0.5 rounded-md">#${item.id || (index+1)}</span>
-            <span class="text-xs text-candyBlue font-bold bg-blue-50 px-2 py-0.5 rounded-md">${item.hint || ''}</span>
+      let html = subset.map((item, index) => {
+        const isStarred = starredSet.has(item.id);
+        return `
+          <div class="${isStarred ? 'bg-yellow-50 border-amber-500' : 'bg-white border-darkBrown'} p-4 rounded-2xl border-2 shadow-pop-sm space-y-2 transition-colors">
+            <div class="flex justify-between items-center gap-2">
+              <div class="flex items-center gap-2">
+                <span class="bg-candyPink text-white text-xs font-bold px-2 py-0.5 rounded-md">#${item.id || (index+1)}</span>
+                ${isStarred ? '<span class="bg-candyYellow text-darkBrown text-xs font-bold px-2 py-0.5 rounded-md border border-darkBrown">置頂精選</span>' : ''}
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-candyBlue font-bold bg-blue-50 px-2 py-0.5 rounded-md">${item.hint || ''}</span>
+                <button onclick="toggleStarQuestion(${JSON.stringify(item.id).replace(/"/g, '&quot;')})" 
+                        title="${isStarred ? '取消星號置頂' : '加入星號並置頂'}"
+                        class="w-8 h-8 rounded-xl border-2 border-darkBrown shadow-pop-sm btn-pop flex items-center justify-center ${isStarred ? 'bg-candyYellow text-amber-600' : 'bg-white text-gray-400 hover:text-amber-500'}">
+                  <i class="${isStarred ? 'fa-solid fa-star' : 'fa-regular fa-star'} text-sm"></i>
+                </button>
+              </div>
+            </div>
+            <p class="font-bold text-darkBrown text-base">Q: ${item.q}</p>
+            <p class="text-sm text-gray-600 font-medium">A: ${item.a}</p>
           </div>
-          <p class="font-bold text-darkBrown text-base">Q: ${item.q}</p>
-          <p class="text-sm text-gray-600 font-medium">A: ${item.a}</p>
-        </div>
-      `).join('');
+        `;
+      }).join('');
 
       if (limit < filtered.length) {
         html += `<div id="load-more-indicator" class="text-center p-3 text-xs text-gray-500 font-medium">👇 往下滾動繼續載入更多題目 (${limit} / ${filtered.length})</div>`;
@@ -816,7 +955,7 @@
 
     function filterBankQuestions() {
       const val = document.getElementById('bank-search-input').value;
-      renderBankList(val);
+      renderBankList(val, true);
     }
   </script>
 </body>
